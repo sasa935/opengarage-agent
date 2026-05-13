@@ -7,7 +7,7 @@ OpenGarage Agent supports two review paths:
 
 ## Built-In Reviewer
 
-The `AI PR Review` workflow runs on pull requests and posts or updates one PR comment with a review summary.
+The `AI PR Review` workflow runs on pull requests, including draft PRs, and posts or updates one PR comment with a review summary.
 
 It uses:
 

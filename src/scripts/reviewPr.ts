@@ -36,16 +36,6 @@ async function main(): Promise<void> {
   }
 
   const pullRequest = await githubRequest<GitHubPullRequest>(repo, token, `/pulls/${prNumber}`);
-  if (pullRequest.draft) {
-    await upsertReviewComment(repo, token, prNumber, [
-      REVIEW_MARKER,
-      "## OpenGarage AI Review",
-      "",
-      "Skipping review while this PR is still a draft. Mark it ready for review to trigger a full AI pass."
-    ].join("\n"));
-    return;
-  }
-
   const diff = await githubRequestText(repo, token, `/pulls/${prNumber}`, "application/vnd.github.v3.diff");
   const truncatedDiff = truncateDiff(diff, MAX_DIFF_CHARS);
   const provider = createDeepSeekProviderFromEnv();
@@ -68,6 +58,7 @@ async function main(): Promise<void> {
       content: [
         `Repository: ${repo}`,
         `PR: #${pullRequest.number} ${pullRequest.title}`,
+        `Draft: ${pullRequest.draft ? "yes" : "no"}`,
         `URL: ${pullRequest.html_url}`,
         `Base: ${pullRequest.base.ref}`,
         `Head: ${pullRequest.head.ref} ${pullRequest.head.sha}`,
