@@ -2,11 +2,21 @@ import { z } from "zod";
 import type { DiagnosticReport, LlmCaseReview } from "./types.js";
 import type { LlmProvider } from "../llm/types.js";
 
+const stringListSchema = z.union([z.array(z.string()), z.string()]).transform((value) => {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  return value
+    .split(/\n|;/)
+    .map((item) => item.replace(/^[-*\d.\s]+/, "").trim())
+    .filter(Boolean);
+});
+
 const llmCaseReviewSchema = z.object({
   summary: z.string(),
-  likelyDiagnosticDirection: z.array(z.string()),
-  evidenceGaps: z.array(z.string()),
-  cautions: z.array(z.string())
+  likelyDiagnosticDirection: stringListSchema,
+  evidenceGaps: stringListSchema,
+  cautions: stringListSchema
 });
 
 export async function addLlmCaseReview(
