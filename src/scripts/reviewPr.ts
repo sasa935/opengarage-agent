@@ -24,7 +24,13 @@ type IssueComment = {
 };
 
 const REVIEW_MARKER = "<!-- opengarage-ai-review -->";
-const MAX_DIFF_CHARS = 45000;
+const MAX_DIFF_CHARS = 90000;
+const LOW_PRIORITY_DIFF_PATTERNS = [
+  /(^|\/)package-lock\.json$/,
+  /(^|\/)pnpm-lock\.yaml$/,
+  /(^|\/)yarn\.lock$/,
+  /(^|\/)bun\.lockb?$/
+];
 
 async function main(): Promise<void> {
   const repo = requiredEnv("GITHUB_REPOSITORY");
@@ -37,7 +43,7 @@ async function main(): Promise<void> {
 
   const pullRequest = await githubRequest<GitHubPullRequest>(repo, token, `/pulls/${prNumber}`);
   const diff = await githubRequestText(repo, token, `/pulls/${prNumber}`, "application/vnd.github.v3.diff");
-  const truncatedDiff = truncateDiff(diff, MAX_DIFF_CHARS);
+  const preparedDiff = prepareDiff(diff, MAX_DIFF_CHARS);
   const provider = createDeepSeekProviderFromEnv();
 
   const completion = await provider.complete([
@@ -66,10 +72,13 @@ async function main(): Promise<void> {
         "PR body:",
         pullRequest.body ?? "(none)",
         "",
-        truncatedDiff.wasTruncated
-          ? `Diff was truncated to ${MAX_DIFF_CHARS} characters. Review the visible diff and call out truncation risk.`
-          : "Diff:",
-        truncatedDiff.text
+        preparedDiff.omittedFiles.length > 0
+          ? `Omitted low-priority generated files: ${preparedDiff.omittedFiles.join(", ")}`
+          : "No generated files were omitted.",
+        preparedDiff.wasTruncated
+          ? `Diff was truncated to ${MAX_DIFF_CHARS} characters after prioritization. Review the visible diff and call out truncation risk.`
+          : "Prioritized diff:",
+        preparedDiff.text
       ].join("\n")
     }
   ], {
@@ -151,15 +160,45 @@ async function githubRequestText(repo: string, token: string, path: string, acce
   return response.text();
 }
 
-function truncateDiff(diff: string, maxChars: number): { text: string; wasTruncated: boolean } {
-  if (diff.length <= maxChars) {
-    return { text: diff, wasTruncated: false };
+function prepareDiff(diff: string, maxChars: number): { text: string; wasTruncated: boolean; omittedFiles: string[] } {
+  const sections = splitDiffByFile(diff);
+  const highPriority = sections.filter((section) => !isLowPriorityFile(section.path));
+  const lowPriority = sections.filter((section) => isLowPriorityFile(section.path));
+  const omittedFiles = lowPriority.map((section) => section.path);
+  const prioritized = highPriority.map((section) => section.diff).join("\n");
+
+  if (prioritized.length <= maxChars) {
+    return {
+      text: prioritized,
+      wasTruncated: false,
+      omittedFiles
+    };
   }
 
   return {
-    text: `${diff.slice(0, maxChars)}\n\n[diff truncated]\n`,
-    wasTruncated: true
+    text: `${prioritized.slice(0, maxChars)}\n\n[prioritized diff truncated]\n`,
+    wasTruncated: true,
+    omittedFiles
   };
+}
+
+function splitDiffByFile(diff: string): Array<{ path: string; diff: string }> {
+  return diff
+    .split(/(?=^diff --git )/m)
+    .filter(Boolean)
+    .map((section) => ({
+      path: extractDiffPath(section),
+      diff: section
+    }));
+}
+
+function extractDiffPath(section: string): string {
+  const match = section.match(/^diff --git a\/.* b\/(.+)$/m);
+  return match?.[1] ?? "unknown";
+}
+
+function isLowPriorityFile(path: string): boolean {
+  return LOW_PRIORITY_DIFF_PATTERNS.some((pattern) => pattern.test(path));
 }
 
 function requiredEnv(name: string): string {
