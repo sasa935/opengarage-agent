@@ -61,6 +61,23 @@ Use `--offline` to skip live NHTSA lookup, or `--json` to emit machine-readable 
 opengarage diagnose --make Toyota --model Camry --dtc C0035 --symptom "ABS light on" --json
 ```
 
+## Web UI
+
+Start the local web experience:
+
+```bash
+npm run web
+```
+
+Then open http://localhost:3000.
+
+The web UI includes:
+
+- Vehicle, DTC, mileage, and symptom inputs.
+- Optional NHTSA lookup.
+- Optional AI review.
+- A structured report preview with safety level, evidence count, and diagnostic plan.
+
 ## Optional AI Review
 
 The deterministic diagnostic pipeline works without a model. For experiments, you can add an LLM case review with DeepSeek V4:
@@ -140,6 +157,20 @@ The repository includes a DeepSeek-powered GitHub Actions reviewer that comments
 - The agent should explain what evidence would change its conclusion.
 
 ## Development
+
+```bash
+npm run verify
+```
+
+The full verification flow runs:
+
+- Type checking.
+- Unit and integration tests.
+- TypeScript build.
+- Web smoke test.
+- npm package dry run.
+
+Individual checks:
 
 ```bash
 npm run typecheck

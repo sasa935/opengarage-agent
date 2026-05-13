@@ -4,12 +4,33 @@
   "description": "Evidence-first AI diagnostic agent for modern vehicles.",
   "type": "module",
   "bin": {
-    "opengarage": "./dist/cli.js"
+    "opengarage": "./dist/src/cli.js"
   },
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    }
+  },
+  "files": [
+    "dist/src",
+    "public",
+    "docs",
+    "examples",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/cli.ts",
+    "web": "tsx src/web/server.ts",
+    "start": "node dist/src/web/server.js",
+    "web:smoke": "tsx src/scripts/smokeWeb.ts",
     "ai:review-pr": "tsx src/scripts/reviewPr.ts",
+    "pack:check": "npm pack --dry-run",
+    "verify": "npm run typecheck && npm test && npm run build && npm run web:smoke && npm run pack:check",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
