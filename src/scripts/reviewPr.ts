@@ -24,7 +24,7 @@ type IssueComment = {
 };
 
 const REVIEW_MARKER = "<!-- opengarage-ai-review -->";
-const MAX_DIFF_CHARS = 90000;
+const DEFAULT_MAX_DIFF_CHARS = 50000;
 const LOW_PRIORITY_DIFF_PATTERNS = [
   /(^|\/)package-lock\.json$/,
   /(^|\/)pnpm-lock\.yaml$/,
@@ -36,6 +36,7 @@ async function main(): Promise<void> {
   const repo = requiredEnv("GITHUB_REPOSITORY");
   const token = requiredEnv("GITHUB_TOKEN");
   const prNumber = Number.parseInt(requiredEnv("PR_NUMBER"), 10);
+  const maxDiffChars = Number.parseInt(process.env.AI_REVIEW_MAX_DIFF_CHARS ?? String(DEFAULT_MAX_DIFF_CHARS), 10);
 
   if (!Number.isFinite(prNumber)) {
     throw new Error("PR_NUMBER must be a number.");
@@ -43,7 +44,7 @@ async function main(): Promise<void> {
 
   const pullRequest = await githubRequest<GitHubPullRequest>(repo, token, `/pulls/${prNumber}`);
   const diff = await githubRequestText(repo, token, `/pulls/${prNumber}`, "application/vnd.github.v3.diff");
-  const preparedDiff = prepareDiff(diff, MAX_DIFF_CHARS);
+  const preparedDiff = prepareDiff(diff, maxDiffChars);
   const provider = createDeepSeekProviderFromEnv();
 
   const completion = await provider.complete([
@@ -76,7 +77,7 @@ async function main(): Promise<void> {
           ? `Omitted low-priority generated files: ${preparedDiff.omittedFiles.join(", ")}`
           : "No generated files were omitted.",
         preparedDiff.wasTruncated
-          ? `Diff was truncated to ${MAX_DIFF_CHARS} characters after prioritization. Review the visible diff and call out truncation risk.`
+          ? `Diff was truncated to ${maxDiffChars} characters after prioritization. Review the visible diff and call out truncation risk.`
           : "Prioritized diff:",
         preparedDiff.text
       ].join("\n")
