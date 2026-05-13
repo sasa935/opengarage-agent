@@ -24,7 +24,7 @@ type IssueComment = {
 };
 
 const REVIEW_MARKER = "<!-- opengarage-ai-review -->";
-const DEFAULT_MAX_DIFF_CHARS = 50000;
+const DEFAULT_MAX_DIFF_CHARS = 60000;
 const LOW_PRIORITY_DIFF_PATTERNS = [
   /(^|\/)package-lock\.json$/,
   /(^|\/)pnpm-lock\.yaml$/,
@@ -163,7 +163,9 @@ async function githubRequestText(repo: string, token: string, path: string, acce
 
 function prepareDiff(diff: string, maxChars: number): { text: string; wasTruncated: boolean; omittedFiles: string[] } {
   const sections = splitDiffByFile(diff);
-  const highPriority = sections.filter((section) => !isLowPriorityFile(section.path));
+  const highPriority = sections
+    .filter((section) => !isLowPriorityFile(section.path))
+    .sort((a, b) => diffPriority(a.path) - diffPriority(b.path));
   const lowPriority = sections.filter((section) => isLowPriorityFile(section.path));
   const omittedFiles = lowPriority.map((section) => section.path);
   const prioritized = highPriority.map((section) => section.diff).join("\n");
@@ -200,6 +202,28 @@ function extractDiffPath(section: string): string {
 
 function isLowPriorityFile(path: string): boolean {
   return LOW_PRIORITY_DIFF_PATTERNS.some((pattern) => pattern.test(path));
+}
+
+function diffPriority(path: string): number {
+  if (path.startsWith("src/")) {
+    return 0;
+  }
+  if (path.startsWith("tests/")) {
+    return 1;
+  }
+  if (path.startsWith(".github/workflows/")) {
+    return 2;
+  }
+  if (/^(package\.json|tsconfig\.json|\.gitignore|\.env\.example)$/.test(path)) {
+    return 3;
+  }
+  if (path.startsWith("examples/")) {
+    return 4;
+  }
+  if (path.startsWith("docs/") || path === "README.md" || path === "LICENSE") {
+    return 5;
+  }
+  return 6;
 }
 
 function requiredEnv(name: string): string {
