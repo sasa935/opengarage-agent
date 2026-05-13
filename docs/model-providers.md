@@ -2,6 +2,8 @@
 
 OpenGarage Agent uses an OpenAI-compatible chat completions interface for LLM-assisted report review. The deterministic diagnostic pipeline still runs without an LLM.
 
+When model review is enabled, report data such as VIN, DTCs, symptoms, and vehicle details may be sent to the configured provider. Leave `--ai` disabled for local-only report generation.
+
 ## DeepSeek
 
 Set the API key in your shell or secret manager:

@@ -39,7 +39,7 @@ program
   .option("-d, --dtc <code>", "Diagnostic trouble code; repeat for multiple codes", collect, [])
   .option("-s, --symptom <text>", "Observed symptom; repeat for multiple symptoms", collect, [])
   .option("--offline", "Skip live network evidence lookup")
-  .option("--ai", "Add an LLM case review using the configured provider")
+  .option("--ai", "Add an LLM case review using the configured provider; sends report data to that provider")
   .option("--ai-model <model>", "Override the LLM model for --ai")
   .option("--json", "Print the raw JSON report")
   .option("-o, --output <path>", "Write the report to a file")
@@ -56,8 +56,14 @@ program
     });
 
     if (options.ai) {
-      const provider = createDeepSeekProviderFromEnv();
-      report = await addLlmCaseReview(report, provider, options.aiModel);
+      process.stderr.write("AI review enabled: report data may be sent to the configured external LLM provider.\n");
+      try {
+        const provider = createDeepSeekProviderFromEnv();
+        report = await addLlmCaseReview(report, provider, options.aiModel);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        process.stderr.write(`AI review skipped: ${message}\n`);
+      }
     }
 
     const rendered = options.json ? `${JSON.stringify(report, null, 2)}\n` : renderMarkdownReport(report);

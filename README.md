@@ -81,6 +81,8 @@ npm run dev -- diagnose \
 
 The LLM is asked to review the structured report, cite evidence gaps, and avoid inventing manufacturer-specific facts. See [docs/model-providers.md](docs/model-providers.md).
 
+When `--ai` is enabled, report data such as VIN, DTCs, symptoms, and vehicle details may be sent to the configured external model provider. Keep `--ai` off for local-only reports.
+
 ## What The Report Includes
 
 - Vehicle profile from VIN decoding or user input.
