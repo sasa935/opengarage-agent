@@ -119,10 +119,15 @@ The local DTC table is intentionally small at first. We should expand it careful
 - Add a small web UI for non-technical users.
 - Add OBD adapter import for common ELM327 CSV/log formats.
 - Add LLM summarization with explicit evidence citations.
+- Add automatic AI review for PRs and generated diagnostic-rule changes.
 - Add PDF/manual ingestion for user-owned documents.
 - Add GitHub issue-to-diagnostic-report workflow for open-source automotive data projects.
 - Add plugin interfaces for fleet maintenance systems.
 - Add multilingual report output.
+
+## AI PR Review
+
+The repository includes a DeepSeek-powered GitHub Actions reviewer that comments on PRs automatically. See [docs/ai-pr-review.md](docs/ai-pr-review.md).
 
 ## Safety Principles
 

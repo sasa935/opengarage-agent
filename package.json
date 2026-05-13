@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/cli.ts",
+    "ai:review-pr": "tsx src/scripts/reviewPr.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
