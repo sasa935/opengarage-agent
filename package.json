@@ -1,0 +1,59 @@
+{
+  "name": "opengarage-agent",
+  "version": "0.1.0",
+  "description": "Evidence-first AI diagnostic agent for modern vehicles.",
+  "type": "module",
+  "bin": {
+    "opengarage": "./dist/src/cli.js"
+  },
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    }
+  },
+  "files": [
+    "dist/src",
+    "public",
+    "docs",
+    "examples",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/cli.ts",
+    "web": "tsx src/web/server.ts",
+    "start": "node dist/src/web/server.js",
+    "web:smoke": "tsx src/scripts/smokeWeb.ts",
+    "ai:review-pr": "tsx src/scripts/reviewPr.ts",
+    "pack:check": "npm pack --dry-run",
+    "verify": "npm run typecheck && npm test && npm run build && npm run web:smoke && npm run pack:check",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "agent",
+    "automotive",
+    "diagnostics",
+    "obd2",
+    "nhtsa",
+    "ai"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^14.0.2",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

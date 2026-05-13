@@ -1,0 +1,36 @@
+name: AI Smoke Test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deepseek:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Run DeepSeek report review
+        env:
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_MODEL: deepseek-v4-flash
+        run: |
+          npm run dev -- diagnose \
+            --year 2012 \
+            --make Honda \
+            --model Accord \
+            --mileage 120000 \
+            --dtc P0420 \
+            --symptom "rough idle" \
+            --offline \
+            --ai \
+            --output ai-smoke-report.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ai-smoke-report
+          path: ai-smoke-report.md

@@ -1,0 +1,9 @@
+{
+  "year": 2012,
+  "make": "Honda",
+  "model": "Accord",
+  "mileage": 120000,
+  "dtcs": ["P0420", "P0171"],
+  "symptoms": ["rough idle", "higher fuel consumption", "check engine light on"],
+  "includeNetworkEvidence": false
+}
