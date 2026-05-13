@@ -56,6 +56,7 @@ async function main(): Promise<void> {
         "Prioritize correctness, security, data/privacy safety, CI risk, tests, and maintainability.",
         "Do not nitpick formatting. Do not invent files that are not in the diff.",
         "Do not claim model names are invalid from memory; model catalogs change quickly. Treat model defaults as configuration risk only when the diff proves a mismatch.",
+        "For DeepSeek specifically, deepseek-v4-flash and deepseek-v4-pro are valid current API model identifiers.",
         "If you find issues, include severity labels like P0, P1, P2, or P3 and cite file paths.",
         "If no blocking issues are found, say that clearly and list remaining risks or test gaps.",
         "Return concise Markdown under 900 words."
